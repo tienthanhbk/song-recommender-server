@@ -15,6 +15,24 @@ def create_connection(db_file):
         print(e)
     return None
 
+def get_all_users(conn):
+    users = pandas.read_sql_query('''
+                                  SELECT * FROM users
+                                  ''', conn)
+    return users
+
+def get_all_songs(conn):
+    songs = pandas.read_sql_query('''
+                                  SELECT * FROM songs
+                                  ''', conn)
+    return songs
+
+def get_all_trackings(conn):
+    trackings = pandas.read_sql_query('''
+                                  SELECT * FROM trackings
+                                  ''', conn)
+    return trackings
+
 def get_random_songs(conn):
     users = pandas.read_sql_query('''
                                   SELECT * FROM songs
@@ -39,7 +57,7 @@ def get_song(conn, song_id):
 
 def get_all_trackings(conn):
     trackings = pandas.read_sql_query('''
-                                  SELECT * FROM songs
+                                  SELECT * FROM trackings
                                   ''', conn)
     return trackings
 
