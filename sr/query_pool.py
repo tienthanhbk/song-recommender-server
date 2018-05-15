@@ -22,11 +22,13 @@ def get_random_songs(conn):
     users_random = users.sample(n=10)
     return users_random
 
-def get_all_songs(conn):
+def get_song(conn, song_id):
     songs = pandas.read_sql_query('''
-                                  SELECT * FROM songs
-                                  ''', conn)
-    return songs
+                                  SELECT * FROM songs WHERE song_id = ?
+                                  ''', conn, params=(song_id,))
+    if songs.empty:
+        return None
+    return songs.head(1)
 
 def get_all_trackings(conn):
     trackings = pandas.read_sql_query('''
@@ -34,4 +36,12 @@ def get_all_trackings(conn):
                                   ''', conn)
     return trackings
 
-
+def check_login(conn, user_id, password):
+    print(user_id)
+    print(password)
+    users = pandas.read_sql_query('''
+                                SELECT * FROM users WHERE user_id = ? AND password = ?
+                                ''', conn, params=[user_id, password])
+    if users.empty:
+        return {'success': False}
+    return {'success': True, 'user': users.head(1)}

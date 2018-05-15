@@ -30,6 +30,8 @@ count_nan = dataset_df.isnull().sum()
 user_df = dataset_df.drop_duplicates(['user_id']).filter(['user_id'], axis=1)
 song_df = dataset_df.drop_duplicates(['song_id']).filter(['song_id', 'song_name', 'artist_name'], axis=1)
 
+user_df['password'] = user_df['user_id']
+
 dataset_df.to_csv(DATA_STORED_PATH + '/song-tracking.csv', encoding='utf-8', index=False)
 user_df.to_csv(DATA_STORED_PATH + '/user.csv', encoding='utf-8', index=False)
 song_df.to_csv(DATA_STORED_PATH + '/song.csv', encoding='utf-8', index=False)

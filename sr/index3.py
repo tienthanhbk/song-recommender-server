@@ -59,7 +59,7 @@ def create_table(conn):
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE users 
-        (user_id text)
+        (user_id text, password text)
     ''')
     cursor.execute('''
         CREATE TABLE songs 

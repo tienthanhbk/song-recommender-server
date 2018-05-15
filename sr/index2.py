@@ -38,6 +38,8 @@ tracking_sample_df = tracking_df.sample(n=10000, random_state=16)
 song_sample_df = tracking_sample_df.drop_duplicates(['song_id']).filter(['song_id', 'song_name', 'artist_name'], axis=1)
 user_sample_df = tracking_sample_df.drop_duplicates(['user_id']).filter(['user_id'], axis=1)
 
+user_sample_df['password'] = user_sample_df['user_id']
+
 tracking_sample_df.to_csv(DATA_SAMPLE_STORED_PATH + '/tracking_sample.csv',
                           encoding='utf-8',
                           index=False)
