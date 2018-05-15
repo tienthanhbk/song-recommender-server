@@ -22,12 +22,19 @@ def get_random_songs(conn):
     users_random = users.sample(n=10)
     return users_random
 
+def search_songs(conn, txtsearch):
+    txtsearch_fix = '%'+txtsearch+'%'
+    songs = pandas.read_sql_query('''
+        SELECT * FROM songs WHERE LOWER(song_name) LIKE ?
+            OR LOWER(artist_name) LIKE ?
+            LIMIT 20
+    ''', conn, params=(txtsearch_fix, txtsearch_fix))
+    return songs
+
 def get_song(conn, song_id):
     songs = pandas.read_sql_query('''
                                   SELECT * FROM songs WHERE song_id = ?
                                   ''', conn, params=(song_id,))
-    if songs.empty:
-        return None
     return songs.head(1)
 
 def get_all_trackings(conn):
