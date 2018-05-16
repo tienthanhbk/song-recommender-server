@@ -4,9 +4,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse
 
 class user():
-    def __init__(self):
-        super(ClassName, self).__init__()
-        self.arg = arg
+    def __init__(self, index, id):
+        self.index = index
+        self.id = id
+
+class rating_user_for_item():
+    def __init__(self, index, rating):
+        # super(rating_user_for_item, self).__init__()
+        self.index = index
+        self.rating = rating
 
 class popularity_recommender():
     def __init__(self):
@@ -49,7 +55,7 @@ class popularity_recommender():
 
         user_recommendations = user_recommendations[cols]
 
-        return user_recommendations['song_id']
+        return user_recommendations
 
 class collaborative_filtering():
     def __init__(self):
@@ -127,11 +133,18 @@ class collaborative_filtering():
         ids = np.where(self.Y_data[:, 0] == u)[0]
         items_rated_by_u = self.Y_data[ids, 1].tolist()
         recommended_items = []
+        list_rating = []
         for i in range(self.n_items):
             if i not in items_rated_by_u:
                 rating = self.pred(u, i)
                 if rating > 0:
-                    recommended_items.append(i)
+                    list_rating.append(rating_user_for_item(i, rating))
+            else:
+                if self.Ybar[i, u] > 0:
+                    list_rating.append(rating_user_for_item(i, self.Ybar[i, u]))
+        list_rating = sorted(list_rating, reverse=True, key=lambda rating: rating.rating)
+        for rating in list_rating[:10]:
+            recommended_items.append(rating.index)
         return recommended_items
 
     def print_recommendation_all(self):
@@ -144,7 +157,8 @@ class collaborative_filtering():
 
     def print_recommendation_with_index(self, u):
         recommended_items = self.recommend(u)
-        if self.uuCF:
-            print('    Recommend item(s):', recommended_items, 'to user', u)
-        else:
-            print('    Recommend item', u, 'to user(s) : ', recommended_items)
+        # if self.uuCF:
+        #     print('    Recommend item(s):', recommended_items, 'to user', u)
+        # else:
+        #     print('    Recommend item', u, 'to user(s) : ', recommended_items)
+        return recommended_items
