@@ -137,11 +137,13 @@ class collaborative_filtering():
         for i in range(self.n_items):
             if i not in items_rated_by_u:
                 rating = self.pred(u, i)
-                if rating > 0:
-                    list_rating.append(rating_user_for_item(i, rating))
+                list_rating.append(rating_user_for_item(i, rating))
+                # if rating > 0:
+                    # list_rating.append(rating_user_for_item(i, rating))
             else:
-                if self.Ybar[i, u] > 0:
-                    list_rating.append(rating_user_for_item(i, self.Ybar[i, u]))
+                list_rating.append(rating_user_for_item(i, self.Ybar[i, u]))
+                # if self.Ybar[i, u] > 0:
+                    # list_rating.append(rating_user_for_item(i, self.Ybar[i, u]))
         list_rating = sorted(list_rating, reverse=True, key=lambda rating: rating.rating)
         for rating in list_rating[:10]:
             recommended_items.append(rating.index)
