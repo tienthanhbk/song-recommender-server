@@ -8,8 +8,10 @@ import QueryPool
 import RecommendPool as RePool
 import crossdomain
 import datetime
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 #Get currect directory
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -17,23 +19,9 @@ DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 DB_STORED_PATH = os.path.join(DIR_PATH, 'db')
 DB_URI = os.path.join(DB_STORED_PATH, 'recommender.db')
 
-# def jsonp(func):
-#     """Wraps JSONified output for JSONP requests."""
-#     @wraps(func)
-#     def decorated_function(*args, **kwargs):
-#         callback = request.args.get('callback', False)
-#         if callback:
-#             data = str(func(*args, **kwargs).data)
-#             content = str(callback) + '(' + data + ')'
-#             mimetype = 'application/javascript'
-#             return current_app.response_class(content, mimetype=mimetype)
-#         else:
-#             return func(*args, **kwargs)
-#     return decorated_function
-
 
 @app.route("/api/login", methods=["POST"])
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def log_in():
     user_id = request.json['user_id']
     password = request.json['password']
@@ -50,14 +38,15 @@ def log_in():
     session['user'] = user.to_dict(orient='records')[0]
     session['songs_recent'] = []
 
-    response = { 'status': 1 }
     # response.headers.add('Access-Control-Allow-Origin', '*')
+    response = { 'status': 1 }
+    
 
     return jsonify(response)
 
 
 @app.route("/api/logout")
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def log_out():
     session['logged_in'] = False
     session['songs_recent'] = []
@@ -65,7 +54,7 @@ def log_out():
 
 
 @app.route("/api/song/listen", methods=["POST"])
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def listen_song():
     if not session.get('logged_in'):
         return jsonify({'status': -1, 'errorMsg': 'You have not login!'})
@@ -94,7 +83,7 @@ def listen_song():
 
 
 @app.route("/api/song/top", methods=["GET"])
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def recommend_top_songs():    
     conn = QueryPool.create_connection(DB_URI)
 
@@ -107,7 +96,7 @@ def recommend_top_songs():
 
 
 @app.route("/api/song/recommend", methods=["GET"])
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def recommend_songs():
     if not session.get('logged_in'):
         return jsonify({ 'status': -1, 'errorMsg': 'You have not login!' })
@@ -122,12 +111,12 @@ def recommend_songs():
 
     json_string = recommend_songs.to_json(orient='records')
     response = jsonify(json.loads(json_string))
-    # response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 
 @app.route("/api/song/search", methods=["GET"])
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def search_songs():
     txtsearch = request.args.get('name')
     conn = QueryPool.create_connection(DB_URI)
@@ -139,14 +128,14 @@ def search_songs():
 
 
 @app.route("/api/whoimi")
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def whoimi():
     user = session.get('user')
     return jsonify(user)
 
 
 @app.route("/api/history")
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def history():
     songs = session.get('songs_recent')
 
@@ -154,7 +143,7 @@ def history():
 
 
 @app.route("/")
-@crossdomain.cors(origin='*')
+# @crossdomain.cors(origin='*')
 def root():
     return render_template('index.html')
 
