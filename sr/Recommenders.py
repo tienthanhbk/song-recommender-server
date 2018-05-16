@@ -145,22 +145,17 @@ class collaborative_filtering():
                 # if self.Ybar[i, u] > 0:
                     # list_rating.append(rating_user_for_item(i, self.Ybar[i, u]))
         list_rating = sorted(list_rating, reverse=True, key=lambda rating: rating.rating)
-        for rating in list_rating[:10]:
+        for rating in list_rating[:self.n_result]:
             recommended_items.append(rating.index)
         return recommended_items
 
-    def print_recommendation_all(self):
+    def print_recommendation_all(self, num_result):
+        self.n_result = num_result
         for u in range(self.n_users):
             recommended_items = self.recommend(u)
-            if self.uuCF:
-                print('    Recommend item(s):', recommended_items, 'to user', u)
-            else:
-                print('    Recommend item', u, 'to user(s) : ', recommended_items)
+        return recommended_items
 
-    def print_recommendation_with_index(self, u):
+    def print_recommendation_with_index(self, u, num_result):
+        self.n_result = num_result
         recommended_items = self.recommend(u)
-        # if self.uuCF:
-        #     print('    Recommend item(s):', recommended_items, 'to user', u)
-        # else:
-        #     print('    Recommend item', u, 'to user(s) : ', recommended_items)
         return recommended_items

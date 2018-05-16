@@ -28,8 +28,8 @@ song_df_1 = song_df_1.rename(columns={'timestamp': 'listen_count'})
 
 # song_df = pd.merge(song_df_1, song_df_2.drop_duplicates(['song_id']), on="song_id", how="left")
 
-users = song_df_1['user_id'].unique()
-items = song_df_1['song_id'].unique()
+users_unique = song_df_1['user_id'].unique()
+items_unique = song_df_1['song_id'].unique()
 
 # *** Gợi ý theo mức độ phổ biến ***
 # rs = Recommenders.popularity_recommender()
@@ -40,8 +40,8 @@ items = song_df_1['song_id'].unique()
 # recommendation = pd.merge(recommendation_songs_rank, recommendation_songs_data.drop_duplicates(['song_id']), on="song_id", how="left")
 # **********************************
 
-num_users = len(users)
-num_songs = len(items)
+num_users = len(users_unique)
+num_songs = len(items_unique)
 
 Y_data = song_df_1.as_matrix()
 Ybar_data = Y_data.copy()
@@ -89,27 +89,46 @@ mt_item = df_item.as_matrix()
 
 rs = Recommenders.collaborative_filtering()
 
-rs.create(Ybar_data, k = 2, dist_func = cosine_similarity, uuCF = 1, n_users = num_users, n_items = num_songs)
+# uu_CF = 1 là user-user, 0 là item-item
+uu_CF = 1
+# Số kết quả trả về
+num_result = 10
+
+rs.create(Ybar_data, k = 2, dist_func = cosine_similarity, uuCF = uu_CF, n_users = num_users, n_items = num_songs)
 
 # normalize và tính toán độ tương đồng
 rs.fit()
 
 # Đưa ra gợi ý với tất cả các user
-# rs.print_recommendation_all()
+# rs.print_recommendation_all(num_result)
 
 # Đưa ra gợi ý với user đầu vào
-id_user = str(sys.argv[1])
-index_user = mt_user[mt_user[:, 0] == id_user][0][1]
-
-list_index = rs.print_recommendation_with_index(index_user)
 
 list_item_id = []
-for i in list_index:
-    # list_item_id.append(df_item.ix[i,"item_id"])
-    list_item_id.append(mt_item[mt_item[:, 1] == i][0][0])
-recommendation_songs_data = songs.query("song_id in @list_item_id")
-print(recommendation_songs_data)
-print(type(recommendation_songs_data))
+if(uu_CF):
+    id_user = str(sys.argv[1])
+    index_user = mt_user[mt_user[:, 0] == id_user][0][1]
+    list_index = rs.print_recommendation_with_index(index_user, num_result)
+
+    for i in list_index:
+        list_item_id.append(mt_item[mt_item[:, 1] == i][0][0])
+
+    recommendation_songs_data = songs.query("song_id in @list_item_id")
+
+    print(recommendation_songs_data)
+    print(type(recommendation_songs_data))
+else:
+    id_item = str(sys.argv[1])
+    index_item = mt_item[mt_item[:, 0] == id_item][0][1]
+    list_index = rs.print_recommendation_with_index(index_item, num_result)
+
+    for i in list_index:
+        list_item_id.append(mt_user[mt_user[:, 1] == i][0][0])
+
+    recommendation_users_data = users.query("user_id in @list_item_id")
+
+    print(recommendation_users_data)
+
 # *****************************************
 # r_cols = ['user_id', 'item_id', 'rating']
 
