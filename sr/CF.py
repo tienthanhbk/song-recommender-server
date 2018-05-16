@@ -16,6 +16,7 @@ songs = QueryPool.get_all_songs(conn)
 trackings = QueryPool.get_all_trackings(conn)
 
 song_df_1 = trackings.groupby(['user_id', 'song_id']).agg({'timestamp': 'count'}).reset_index()
+song_df_1 = song_df_1.rename(columns={'timestamp': 'listen_count'})
 
 # tracking_file = 'Dataset/Test/10000_line.txt'
 # songs_metadata_file = 'Dataset/Test/song_data.csv'
@@ -80,9 +81,11 @@ Ybar_data[:, 2] = count
 
 df_user = pd.DataFrame([id_user_current, index_users_unique]).T
 df_user.columns = ["user_id", "index"]
+mt_user = df_user.as_matrix()
 
 df_item = pd.DataFrame([id_item_current, index_items_unique]).T
 df_item.columns = ["item_id", "index"]
+mt_item = df_item.as_matrix()
 
 rs = Recommenders.collaborative_filtering()
 
@@ -95,11 +98,15 @@ rs.fit()
 # rs.print_recommendation_all()
 
 # Đưa ra gợi ý với user đầu vào
-index = 6
-list_index = rs.print_recommendation_with_index(index)
+id_user = str(sys.argv[1])
+index_user = mt_user[mt_user[:, 0] == id_user][0][1]
+
+list_index = rs.print_recommendation_with_index(index_user)
+
 list_item_id = []
 for i in list_index:
-    list_item_id.append(df_item.ix[i,"item_id"])
+    # list_item_id.append(df_item.ix[i,"item_id"])
+    list_item_id.append(mt_item[mt_item[:, 1] == i][0][0])
 recommendation_songs_data = songs.query("song_id in @list_item_id")
 print(recommendation_songs_data)
 print(type(recommendation_songs_data))
