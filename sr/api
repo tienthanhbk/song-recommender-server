@@ -1,0 +1,25 @@
+POST /api/login
+  params {
+    "user_id": String,
+    "password": String
+  }
+
+GET /api/logout
+
+POST /api/song/listen
+  params {
+    "song_id": String,
+  }
+
+GET /api/song/top
+
+GET /api/song/recommend
+
+GET /api/song/search?name=ten_bai_hat_hoac_ten_ca_si_viet_thuong
+
+Mốt số api khác
+GET /api/history
+GET /api/whoimi
+
+Cac package
+json, pandas, sqlite3, os, flask, sqlite3, datetime, 

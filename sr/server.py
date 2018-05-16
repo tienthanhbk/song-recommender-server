@@ -89,7 +89,7 @@ def recommend_top_songs():
     return response
 
 
-@app.route("/api/song/recommend", methods=["POST"])
+@app.route("/api/song/recommend", methods=["GET"])
 @crossdomain.cors(origin='*')
 def recommend_songs():
     if not session.get('logged_in'):
