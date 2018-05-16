@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import json, pandas, sqlite3, os
+import json, pandas, sqlite3, os, pdb
 from flask import Flask, request, jsonify, json, session, flash, abort, render_template
 from sqlite3 import Error
 import QueryPool
@@ -16,6 +16,20 @@ DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 
 DB_STORED_PATH = os.path.join(DIR_PATH, 'db')
 DB_URI = os.path.join(DB_STORED_PATH, 'recommender.db')
+
+# def jsonp(func):
+#     """Wraps JSONified output for JSONP requests."""
+#     @wraps(func)
+#     def decorated_function(*args, **kwargs):
+#         callback = request.args.get('callback', False)
+#         if callback:
+#             data = str(func(*args, **kwargs).data)
+#             content = str(callback) + '(' + data + ')'
+#             mimetype = 'application/javascript'
+#             return current_app.response_class(content, mimetype=mimetype)
+#         else:
+#             return func(*args, **kwargs)
+#     return decorated_function
 
 
 @app.route("/api/login", methods=["POST"])
@@ -36,7 +50,10 @@ def log_in():
     session['user'] = user.to_dict(orient='records')[0]
     session['songs_recent'] = []
 
-    return jsonify({ 'status': 1 })
+    response = { 'status': 1 }
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+
+    return jsonify(response)
 
 
 @app.route("/api/logout")
@@ -101,7 +118,7 @@ def recommend_songs():
     conn = QueryPool.create_connection(DB_URI)
 
     # recommend_songs = QueryPool.get_random_songs(conn)
-    recommend_songs = RePool.get_recommend_songs(conn, user_id, song_num)
+    recommend_songs = RePool.get_recommend_songs(conn, user_id, 11)
 
     json_string = recommend_songs.to_json(orient='records')
     response = jsonify(json.loads(json_string))
