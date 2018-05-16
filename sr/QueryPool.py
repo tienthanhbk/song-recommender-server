@@ -45,7 +45,7 @@ def search_songs(conn, txtsearch):
     songs = pandas.read_sql_query('''
         SELECT * FROM songs WHERE LOWER(song_name) LIKE ?
             OR LOWER(artist_name) LIKE ?
-            LIMIT 20
+            LIMIT 10
     ''', conn, params=(txtsearch_fix, txtsearch_fix))
     return songs
 

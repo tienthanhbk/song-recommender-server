@@ -84,7 +84,7 @@ def recommend_top_songs():
     top_songs = RePool.get_top_songs(conn)
 
     json_string = top_songs.to_json(orient='records')
-    response = jsonify(json.loads(json_string))
+    response = jsonify({"songs": json.loads(json_string)})
     # response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
@@ -101,7 +101,7 @@ def recommend_songs():
     conn = QueryPool.create_connection(DB_URI)
 
     # recommend_songs = QueryPool.get_random_songs(conn)
-    recommend_songs = RePool.get_recommend_songs(conn, '12345')
+    recommend_songs = RePool.get_recommend_songs(conn, user_id, song_num)
 
     json_string = recommend_songs.to_json(orient='records')
     response = jsonify(json.loads(json_string))
@@ -118,7 +118,7 @@ def search_songs():
     if songs.empty:
         return jsonify({ 'songs': [] })
     response = json.loads(songs.to_json(orient='records'))
-    return jsonify(response)
+    return jsonify({"result": response})
 
 
 @app.route("/api/whoimi")
@@ -133,7 +133,7 @@ def whoimi():
 def history():
     songs = session.get('songs_recent')
 
-    return jsonify(songs)
+    return jsonify({"song": songs})
 
 
 @app.route("/")
