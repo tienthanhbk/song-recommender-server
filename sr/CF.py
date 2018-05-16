@@ -95,13 +95,14 @@ rs.fit()
 # rs.print_recommendation_all()
 
 # Đưa ra gợi ý với user đầu vào
-index = int(sys.argv[1])
+index = 6
 list_index = rs.print_recommendation_with_index(index)
 list_item_id = []
 for i in list_index:
     list_item_id.append(df_item.ix[i,"item_id"])
 recommendation_songs_data = songs.query("song_id in @list_item_id")
 print(recommendation_songs_data)
+print(type(recommendation_songs_data))
 # *****************************************
 # r_cols = ['user_id', 'item_id', 'rating']
 

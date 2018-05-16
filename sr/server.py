@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json, pandas, sqlite3, os
-from flask import Flask, request, jsonify, json, session, flash, abort
+from flask import Flask, request, jsonify, json, session, flash, abort, render_template
 from sqlite3 import Error
 import QueryPool
 import RecommendPool as RePool
@@ -100,7 +100,8 @@ def recommend_songs():
 
     conn = QueryPool.create_connection(DB_URI)
 
-    recommend_songs = QueryPool.get_random_songs(conn)
+    # recommend_songs = QueryPool.get_random_songs(conn)
+    recommend_songs = RePool.get_recommend_songs(conn, '12345')
 
     json_string = recommend_songs.to_json(orient='records')
     response = jsonify(json.loads(json_string))
@@ -133,6 +134,12 @@ def history():
     songs = session.get('songs_recent')
 
     return jsonify(songs)
+
+
+@app.route("/")
+@crossdomain.cors(origin='*')
+def root():
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
