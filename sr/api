@@ -22,4 +22,4 @@ GET /api/history
 GET /api/whoimi
 
 Cac package
-json, pandas, sqlite3, os, flask, sqlite3, datetime, 
+json, pandas, sqlite3, os, flask, sqlite3, datetime, scipy, sklearn, numpy
