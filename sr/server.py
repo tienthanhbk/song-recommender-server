@@ -11,9 +11,10 @@ import datetime
 from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
-app.config['CORS_HEADERS'] = 'Content-Type'
-cors = CORS(app, resources={r"/*": {"origins": "http://localhost:5000"}})
+CORS(app)
+# app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
+# app.config['CORS_HEADERS'] = 'Content-Type'
+# cors = CORS(app, resources={r"/*": {"origins": "http://localhost:5000"}})
 
 #Get currect directory
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -167,6 +168,6 @@ def root():
 
 
 if __name__ == '__main__':
-    # app.secret_key = os.urandom(12)
+    app.secret_key = os.urandom(12)
     app.run(debug=True)
 
