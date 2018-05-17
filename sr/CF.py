@@ -5,131 +5,150 @@ from sklearn.metrics.pairwise import cosine_similarity
 import sys
 import Recommenders
 
-CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
-# Fix path to database file under here
-DB_URI = os.path.join(CURRENT_PATH, 'db', 'recommender.db')
-# Fix path to database file upon here
-conn = QueryPool.create_connection(DB_URI)
+import time
+import datetime
 
-users = QueryPool.get_all_users(conn)
-songs = QueryPool.get_all_songs(conn)
-trackings = QueryPool.get_all_trackings(conn)
+class CF():
+    def __init__(self):
+        # super(CF, self).__init__()
+        self.CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
+        # Fix path to database file under here
+        self.DB_URI = os.path.join(self.CURRENT_PATH, 'db', 'recommender.db')
+        # Fix path to database file upon here
+        self.conn = QueryPool.create_connection(self.DB_URI)
 
-song_df_1 = trackings.groupby(['user_id', 'song_id']).agg({'timestamp': 'count'}).reset_index()
-song_df_1 = song_df_1.rename(columns={'timestamp': 'listen_count'})
+        # Lấy ra danh sách users, songs, trackings từ db
+        self.users = QueryPool.get_all_users(self.conn)
+        self.songs = QueryPool.get_all_songs(self.conn)
+        self.trackings = QueryPool.get_all_trackings(self.conn)
 
-# tracking_file = 'Dataset/Test/10000_line.txt'
-# songs_metadata_file = 'Dataset/Test/song_data.csv'
+        self.process_df()
 
-# song_df_1 = pd.read_table(tracking_file, delim_whitespace=True, header=None)
-# song_df_1.columns = ['user_id', 'song_id', 'listen_count']
+    def add_tracking_file(self, user_id, item_id):
+        # *********************************
+        # User nghe thêm bài hát khát
+        # Lấy thời gian hiện tại
+        ts = time.time()
+        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%SZ')
 
-# song_df_2 = pd.read_csv(songs_metadata_file)
+        # Tạo bản ghi mới
+        df_record_tracking = pd.DataFrame([user_id, item_id, st]).T
+        df_record_tracking.columns = ["user_id", "song_id", "timestamp"]
+        df_record_tracking.index = [len(self.trackings)]
 
-# song_df = pd.merge(song_df_1, song_df_2.drop_duplicates(['song_id']), on="song_id", how="left")
+        # Thêm bản ghi mới vào file trackings
+        self.trackings = pd.concat([self.trackings,df_record_tracking],axis=0)
 
-users_unique = song_df_1['user_id'].unique()
-items_unique = song_df_1['song_id'].unique()
+        self.process_df()
+        # **********************************
 
-# *** Gợi ý theo mức độ phổ biến ***
-# rs = Recommenders.popularity_recommender()
-# rs.create(song_df_1, 'user_id', 'song_id')
-# recommendation_songs_rank = rs.recommend(users[0])
-# recommendation_songs_id = recommendation_songs_rank['song_id']
-# recommendation_songs_data = songs.query("song_id in @recommendation_songs_id")
-# recommendation = pd.merge(recommendation_songs_rank, recommendation_songs_data.drop_duplicates(['song_id']), on="song_id", how="left")
-# **********************************
+    def process_df(self):
+        self.song_df_1 = self.trackings.groupby(['user_id', 'song_id']).agg({'timestamp': 'count'}).reset_index()
+        self.song_df_1 = self.song_df_1.rename(columns={'timestamp': 'listen_count'})
+        users = self.song_df_1['user_id'].unique()
+        items = self.song_df_1['song_id'].unique()
+        self.num_users = len(users)
+        self.num_items = len(items)
 
-num_users = len(users_unique)
-num_songs = len(items_unique)
+    def popularity_recommender(self):
+        self.rs = Recommenders.popularity_recommender()
+        self.rs.create(self.song_df_1, 'user_id', 'song_id')
+        recommendation_songs_rank = self.rs.recommend()
+        recommendation_songs_id = recommendation_songs_rank['song_id']
+        recommendation_songs_data = self.songs.query("song_id in @recommendation_songs_id")
+        recommendation = pd.merge(recommendation_songs_rank, recommendation_songs_data.drop_duplicates(['song_id']), on="song_id", how="left")
+        return recommendation
 
-Y_data = song_df_1.as_matrix()
-Ybar_data = Y_data.copy()
+    def create_matrix(self):
+        self.Y_data = self.song_df_1.as_matrix()
 
-index_users = []
-index_users_unique = []
-index_items = []
-index_items_unique = []
-count = []
-id_user_current = []
-id_item_current = []
-list_user = []
-i = 0
-j = 0
+        index_users = []
+        index_users_unique = []
+        index_items = []
+        index_items_unique = []
+        count = []
+        id_user_current = []
+        id_item_current = []
+        list_user = []
+        i = 0
+        j = 0
 
-for id_user, id_song, listen_count in Ybar_data:
-    if id_user in id_user_current:
-        index_users.append(id_user_current.index(id_user))
-    else:
-        index_users.append(i)
-        index_users_unique.append(i)
-        i = i + 1
-        id_user_current.append(id_user)
-    list_user.append(Recommenders.user(id_user_current.index(id_user), id_user))
-    if id_song in id_item_current:
-        index_items.append(id_item_current.index(id_song))
-    else:
-        index_items.append(j)
-        index_items_unique.append(j)
-        j = j + 1
-        id_item_current.append(id_song)
-    count.append(listen_count)
+        for id_user, id_song, listen_count in self.Y_data:
+            if id_user in id_user_current:
+                index_users.append(id_user_current.index(id_user))
+            else:
+                index_users.append(i)
+                index_users_unique.append(i)
+                i = i + 1
+                id_user_current.append(id_user)
+            list_user.append(Recommenders.user(id_user_current.index(id_user), id_user))
+            if id_song in id_item_current:
+                index_items.append(id_item_current.index(id_song))
+            else:
+                index_items.append(j)
+                index_items_unique.append(j)
+                j = j + 1
+                id_item_current.append(id_song)
+            count.append(listen_count)
 
-Ybar_data[:, 0] = index_users
-Ybar_data[:, 1] = index_items
-Ybar_data[:, 2] = count
+        self.Y_data[:, 0] = index_users
+        self.Y_data[:, 1] = index_items
+        self.Y_data[:, 2] = count
 
-df_user = pd.DataFrame([id_user_current, index_users_unique]).T
-df_user.columns = ["user_id", "index"]
-mt_user = df_user.as_matrix()
+        self.df_user = pd.DataFrame([id_user_current, index_users_unique]).T
+        self.df_user.columns = ["user_id", "index"]
+        self.mt_user = self.df_user.as_matrix()
 
-df_item = pd.DataFrame([id_item_current, index_items_unique]).T
-df_item.columns = ["item_id", "index"]
-mt_item = df_item.as_matrix()
+        self.df_item = pd.DataFrame([id_item_current, index_items_unique]).T
+        self.df_item.columns = ["item_id", "index"]
+        self.mt_item = self.df_item.as_matrix()
 
-rs = Recommenders.collaborative_filtering()
+    def collaborative_filtering(self, uu_CF, num_result, id):
+        self.rs = Recommenders.collaborative_filtering()
 
-# uu_CF = 1 là user-user, 0 là item-item
-uu_CF = 1
-# Số kết quả trả về
-num_result = 10
+        self.rs.create(self.Y_data, k = 2, dist_func = cosine_similarity, uuCF = uu_CF, n_users = self.num_users, n_items = self.num_items)
 
-rs.create(Ybar_data, k = 2, dist_func = cosine_similarity, uuCF = uu_CF, n_users = num_users, n_items = num_songs)
+        # normalize và tính toán độ tương đồng
+        self.rs.fit()
 
-# normalize và tính toán độ tương đồng
-rs.fit()
+        if not id:
+            # Đưa ra gợi ý với tất cả các user
+            self.rs.print_recommendation_all(num_result)
+        else:
+            list_item_id = []
+            if(uu_CF):
+                index_user = self.mt_user[self.mt_user[:, 0] == id][0][1]
+                list_index = self.rs.print_recommendation_with_index(index_user, num_result)
 
-# Đưa ra gợi ý với tất cả các user
-# rs.print_recommendation_all(num_result)
+                list_item_id = self.get_item_id_by_index(list_index)
 
-# Đưa ra gợi ý với user đầu vào
+                recommendation_songs_data = self.songs.query("song_id in @list_item_id")
+            else:
+                index_item = self.mt_item[self.mt_item[:, 0] == id][0][1]
+                list_index = self.rs.print_recommendation_with_index(index_item, num_result)
 
-list_item_id = []
-if(uu_CF):
-    id_user = str(sys.argv[1])
-    index_user = mt_user[mt_user[:, 0] == id_user][0][1]
-    list_index = rs.print_recommendation_with_index(index_user, num_result)
+                list_item_id = self.get_user_id_by_index(list_index)
 
-    for i in list_index:
-        list_item_id.append(mt_item[mt_item[:, 1] == i][0][0])
+                recommendation_users_data = self.users.query("user_id in @list_item_id")
 
-    recommendation_songs_data = songs.query("song_id in @list_item_id")
+    def get_user_id_by_index(self, index):
+        list_item_id = []
+        for i in index:
+            list_item_id.append(self.mt_user[self.mt_user[:, 1] == i][0][0])
+        return list_item_id
 
-    print(recommendation_songs_data)
-    print(type(recommendation_songs_data))
-else:
-    id_item = str(sys.argv[1])
-    index_item = mt_item[mt_item[:, 0] == id_item][0][1]
-    list_index = rs.print_recommendation_with_index(index_item, num_result)
+    def get_item_id_by_index(self, index):
+        list_item_id = []
+        for i in index:
+            list_item_id.append(self.mt_item[self.mt_item[:, 1] == i][0][0])
+        return list_item_id
 
-    for i in list_index:
-        list_item_id.append(mt_user[mt_user[:, 1] == i][0][0])
-
-    recommendation_users_data = users.query("user_id in @list_item_id")
-
-    print(recommendation_users_data)
+test = CF()
+test.create_matrix()
+test.collaborative_filtering(uu_CF = 1, num_result = 10, id = "user_000008")
 
 # *****************************************
+
 # r_cols = ['user_id', 'item_id', 'rating']
 
 # rating = pd.read_csv('ex.dat', sep = ' ', names = r_cols, encoding = 'latin-1')
