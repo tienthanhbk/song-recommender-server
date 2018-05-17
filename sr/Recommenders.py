@@ -42,11 +42,8 @@ class popularity_recommender():
         self.popularity_recommendations = train_data_sort.head(10)
 
     #Use the popularity based recommender system model to make recommendations
-    def recommend(self, user_id):
+    def recommend(self):
         user_recommendations = self.popularity_recommendations
-
-        # Thêm cột user_id vào trong danh sách gợi ý
-        user_recommendations['user_id'] = user_id
 
         # Lấy ra danh sách các cột
         cols = user_recommendations.columns.tolist()
@@ -153,6 +150,8 @@ class collaborative_filtering():
         self.n_result = num_result
         for u in range(self.n_users):
             recommended_items = self.recommend(u)
+            print(recommended_items)
+        print(recommended_items)
         return recommended_items
 
     def print_recommendation_with_index(self, u, num_result):
