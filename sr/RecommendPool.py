@@ -8,7 +8,7 @@ import Recommenders
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 DB_URI = os.path.join(CURRENT_PATH, 'db', 'recommender.db')
 
-def get_top_songs(conn, user_id, song_num):
+def get_top_songs(conn):
   users = QueryPool.get_all_users(conn)
   songs = QueryPool.get_all_songs(conn)
   trackings = QueryPool.get_all_trackings(conn)
@@ -25,7 +25,7 @@ def get_top_songs(conn, user_id, song_num):
 
   return recommendation_songs_data
 
-def get_recommend_songs(conn, user_id):
+def get_recommend_songs(conn, user_id, song_num):
     CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
     users = QueryPool.get_all_users(conn)
@@ -95,7 +95,7 @@ def get_recommend_songs(conn, user_id):
     # Đưa ra gợi ý với user đầu vào
     index_user = mt_user[mt_user[:, 0] == user_id][0][1]
 
-    list_index = rs.print_recommendation_with_index(index_user)
+    list_index = rs.print_recommendation_with_index(index_user, song_num)
 
     list_item_id = []
     for i in list_index:
