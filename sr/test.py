@@ -20,7 +20,9 @@ tracking_df = pandas.read_csv(tracking_file,
                               error_bad_lines=False)
 #tracking_sample_df = tracking_df.sample(n=10000, random_state=16)
 
-listen_info_df = tracking_df.drop_duplicates(['user_id', 'song_id']).filter(['user_id', 'song_id'], axis=1).groupby(['song_id']).agg({'user_id': 'count'}).reset_index()
+listen_info_df = tracking_df.drop_duplicates(['user_id', 'song_id']).filter(['user_id', 'song_id', 'artist_name', 'song_name'], axis=1).groupby(['song_id', 'artist_name', 'song_name'], sort=False).agg({'user_id': 'count'}).reset_index()
 listen_info_df = listen_info_df.rename(columns={'user_id': 'user_listen'})
 
 popular_songs = listen_info_df.sort_values(by='user_listen', ascending=False)
+
+popular_songs.to_csv(DIR_PATH+'/data/popular-song.csv', encoding='utf-8', index=False)

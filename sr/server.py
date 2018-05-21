@@ -125,7 +125,11 @@ def recommend_songs():
     conn = QueryPool.create_connection(DB_URI)
 
     # recommend_songs = QueryPool.get_random_songs(conn)
-    recommend_songs = RePool.get_recommend_songs(conn, user_id, 11)
+    num_songs = 10 + len(songs_recent)
+    recommend_songs = RePool.get_recommend_songs(conn, user_id, num_songs)
+    # Get songs that not listen yet
+    recommend_songs = recommend_songs[~recommend_songs['song_id'].isin(songs_recent)]
+    recommend_songs = recommend_songs.head(10)
 
     json_string = recommend_songs.to_json(orient='records')
     response = jsonify(json.loads(json_string))
