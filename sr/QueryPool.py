@@ -55,15 +55,16 @@ def get_song(conn, song_id):
                                   ''', conn, params=(song_id,))
     return songs.head(1)
 
-def get_all_trackings(conn):
-    trackings = pandas.read_sql_query('''
-                                  SELECT * FROM trackings
-                                  ''', conn)
-    return trackings
+def signup(conn, user_id, password):
+    users = pandas.read_sql_query('''
+                                SELECT * FROM users WHERE user_id = ? AND password = ?
+                                ''', conn, params=[user_id, password])
+    if users.empty:
+        return {'success': False}
+    return {'success': True, 'user': users.head(1)}
+
 
 def check_login(conn, user_id, password):
-    print(user_id)
-    print(password)
     users = pandas.read_sql_query('''
                                 SELECT * FROM users WHERE user_id = ? AND password = ?
                                 ''', conn, params=[user_id, password])

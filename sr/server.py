@@ -29,23 +29,13 @@ def sign_up():
     user_id = request.json['user_id']
     password = request.json['password']
 
+    data_df = { 'user_id': [user_id], 'password': [password] }
+    signup_df = pandas.DataFrame(data_df)
+
     conn = QueryPool.create_connection(DB_URI)
-    login_return = QueryPool.check_login(conn, user_id, password)
+    signup_df.to_sql('users', conn, if_exists='append', index=False)
 
-    if not login_return['success']:
-        return jsonify({ 'status': -1 })
-    
-    user = login_return['user']
-    
-    session['logged_in'] = True
-    session['user'] = user.to_dict(orient='records')[0]
-    session['songs_recent'] = []
-
-    # response.headers.add('Access-Control-Allow-Origin', '*')
-    response = { 'status': 1 }
-    
-
-    return jsonify(response)
+    return jsonify({ 'status': 1 })
 
 
 @app.route("/api/login", methods=["POST"])
