@@ -23,8 +23,33 @@ DB_STORED_PATH = os.path.join(DIR_PATH, 'db')
 DB_URI = os.path.join(DB_STORED_PATH, 'recommender.db')
 
 
+@app.route("/api/signup", methods=["POST"])
+# @cross_origin(origin='http://127.0.0.1',headers=['Content- Type','Authorization'])
+def sign_up():
+    user_id = request.json['user_id']
+    password = request.json['password']
+
+    conn = QueryPool.create_connection(DB_URI)
+    login_return = QueryPool.check_login(conn, user_id, password)
+
+    if not login_return['success']:
+        return jsonify({ 'status': -1 })
+    
+    user = login_return['user']
+    
+    session['logged_in'] = True
+    session['user'] = user.to_dict(orient='records')[0]
+    session['songs_recent'] = []
+
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+    response = { 'status': 1 }
+    
+
+    return jsonify(response)
+
+
 @app.route("/api/login", methods=["POST"])
-@cross_origin(origin='localhost',headers=['Content- Type','Authorization'])
+# @cross_origin(origin='http://127.0.0.1',headers=['Content- Type','Authorization'])
 def log_in():
     user_id = request.json['user_id']
     password = request.json['password']
@@ -60,16 +85,16 @@ def log_out():
 # @crossdomain.cors(origin='*')
 def listen_song():
     # Un-remove in production
-    # if not session.get('logged_in'):
-    #     return jsonify({'status': -1, 'errorMsg': 'You have not login!'})
+    if not session.get('logged_in'):
+        return jsonify({'status': -1, 'errorMsg': 'You have not login!'})
 
-    # user_id = session.get('user')['user_id']
-    # songs_recent = session.get('songs_recent')
+    user_id = session.get('user')['user_id']
+    songs_recent = session.get('songs_recent')
     # Un-remove in production
 
     # Remove in production
-    user_id='user_000001'
-    songs_recent=[]
+    # user_id='user_000001'
+    # songs_recent=[]
     # Remove in production
 
     song_id = request.json['song_id']
@@ -110,16 +135,16 @@ def recommend_top_songs():
 # @crossdomain.cors(origin='*')
 def recommend_songs():
     # Un-remove in production
-    # if not session.get('logged_in'):
-    #     return jsonify({ 'status': -1, 'errorMsg': 'You have not login!' })
+    if not session.get('logged_in'):
+        return jsonify({ 'status': -1, 'errorMsg': 'You have not login!' })
     
-    # user_id = session.get('user')['user_id']
-    # songs_recent = session.get('songs_recent')
+    user_id = session.get('user')['user_id']
+    songs_recent = session.get('songs_recent')
     # Un-remove in production
 
     # Remove in production
-    user_id = 'user_000001'
-    songs_recent = []
+    # user_id = 'user_000001'
+    # songs_recent = []
     # Remove in production
 
     conn = QueryPool.create_connection(DB_URI)
@@ -150,7 +175,7 @@ def search_songs():
 
 
 @app.route("/api/whoimi")
-@cross_origin(origin='localhost',headers=['Content- Type','Authorization'])
+# @cross_origin(origin='localhost',headers=['Content- Type','Authorization'])
 def whoimi():
     user = session.get('user')
     return jsonify(user)
